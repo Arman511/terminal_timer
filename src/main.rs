@@ -82,16 +82,8 @@ fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
             "eta",
             |state: &ProgressState, w: &mut dyn std::fmt::Write| {
                 let secs = state.eta().as_secs();
-                let h = secs / 3600;
-                let m = (secs % 3600) / 60;
-                let s = secs % 60;
-                if h > 0 {
-                    write!(w, "{}h {}m {}s", h, m, s).unwrap()
-                } else if m > 0 {
-                    write!(w, "{}m {}s", m, s).unwrap()
-                } else {
-                    write!(w, "{}s", s).unwrap()
-                }
+                let formatted = format_duration(secs);
+                write!(w, "{}", formatted).unwrap();
             },
         )
         .progress_chars("#>-"),
@@ -178,6 +170,33 @@ fn main() {
         .expect("Error setting Ctrl+C handler");
     }
 
+    let (hours, minutes, seconds) = get_duration(args);
+
+    let duration = hours * 3600 + minutes * 60 + seconds;
+    print!("Timer started for {}", duration);
+    show_progress_bar(duration, Arc::clone(&global_abort));
+
+    if global_abort.load(Ordering::SeqCst) {
+        return;
+    }
+
+    println!("Playing a random song... (press Enter to stop)");
+    play_song_with_interrupt(global_abort);
+}
+
+fn format_duration(duration: u64) -> String {
+    let h = duration / 3600;
+    let m = (duration % 3600) / 60;
+    let s = duration % 60;
+    if h > 0 {
+        return format!("{}h {}m {}s", h, m, s);
+    } else if m > 0 {
+        return format!("{}m {}s", m, s);
+    }
+    format!("{}s", s)
+}
+
+fn get_duration(args: Args) -> (u64, u64, u64) {
     let input = if args.time.is_empty() {
         print!("Enter duration (e.g. 1h 20m 30s): ");
         io::stdout().flush().unwrap();
@@ -189,25 +208,5 @@ fn main() {
     };
 
     let (hours, minutes, seconds) = parse_duration(&input);
-
-    let duration = hours * 3600 + minutes * 60 + seconds;
-    let h = duration / 3600;
-    let m = (duration % 3600) / 60;
-    let s = duration % 60;
-    print!("Timer started for ");
-    if h > 0 {
-        println!("{}h {}m {}s", h, m, s);
-    } else if m > 0 {
-        println!("{}m {}s", m, s);
-    } else {
-        println!("{}s", s);
-    }
-    show_progress_bar(duration, Arc::clone(&global_abort));
-
-    if global_abort.load(Ordering::SeqCst) {
-        return;
-    }
-
-    println!("Playing a random song... (press Enter to stop)");
-    play_song_with_interrupt(global_abort);
+    (hours, minutes, seconds)
 }
