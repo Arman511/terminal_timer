@@ -1,0 +1,42 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*.*.*"
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [macos-latest, windows-latest]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Set up Rust
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  override: true
+                  components: rustfmt
+
+            - name: Build
+              run: cargo build --release
+
+            - name: Create Release
+              id: create_release
+              run: |
+                  echo "Creating release..."
+                  echo "::set-output name=tag::$(echo ${GITHUB_REF#refs/tags/})"
+                  echo "::set-output name=version::$(echo ${GITHUB_REF#refs/tags/v})"
+
+            - name: Upload Release Assets
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.create_release.outputs.tag }}
+                  files: target/release/terminal_timer
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
