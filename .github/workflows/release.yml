@@ -39,6 +39,7 @@ jobs:
                   choco install go-msi -y
                   mkdir application
                   copy target/release/terminal_timer.exe application/terminal_timer_windows.exe
+                  cp target/release/terminal_timer.exe terminal_timer_windows.exe
                   copy wix.json application\wix.json
 
             - name: Build Windows Installer MSI from exe file
