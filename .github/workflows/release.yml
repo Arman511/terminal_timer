@@ -38,19 +38,20 @@ jobs:
               run: |
                   choco install go-msi -y
                   mkdir application
+                  copy target/release/terminal_timer.exe application/terminal_timer.exe
+                  cp target/release/terminal_timer.exe terminal_timer.exe
                   copy target/release/terminal_timer.exe application/terminal_timer_windows.exe
-                  cp target/release/terminal_timer.exe terminal_timer_windows.exe
                   copy wix.json application\wix.json
 
             - name: Build Windows Installer MSI from exe file
               if: matrix.os == 'windows-latest'
               uses: AliceOh/CreateWindowsInstaller@1.0.0
               with:
-                  exefile: "terminal_timer_windows.exe"
+                  exefile: "terminal_timer.exe"
 
             - name: Rename Windows binary
               if: matrix.os == 'windows-latest'
-              run: mv terminal_timer_windows.exe.msi application/terminal_timer_windows.msi
+              run: mv terminal_timer.exe.msi application/terminal_timer_windows.msi
 
             - name: Rename macOS binary
               if: matrix.os == 'macos-latest'
