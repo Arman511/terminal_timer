@@ -13,8 +13,9 @@ use std::{
 #[derive(Parser)]
 struct Args {
     #[clap(value_parser)]
-    time: Option<String>,
+    time: Vec<String>,
 }
+
 use regex::Regex;
 use std::io::Cursor;
 use std::sync::atomic::AtomicBool;
@@ -25,20 +26,21 @@ const AUDIO_2: &[u8] = include_bytes!("audio/2.ogg");
 const AUDIO_3: &[u8] = include_bytes!("audio/3.ogg");
 const AUDIO_4: &[u8] = include_bytes!("audio/4.ogg");
 
+const AUDIO_LIST: [&[u8]; 4] = [AUDIO_1, AUDIO_2, AUDIO_3, AUDIO_4];
+
+fn random_choice<'a, T>(list: &'a [T]) -> &'a T {
+    let mut rng = rand::rng();
+    let idx = rng.random_range(0..list.len());
+    &list[idx]
+}
+
 fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Arc::new(std::sync::Mutex::new(
         Sink::try_new(&stream_handle).unwrap(),
     ));
 
-    let n = rand::rng().random_range(1..=4);
-    let audio_data = match n {
-        1 => AUDIO_1,
-        2 => AUDIO_2,
-        3 => AUDIO_3,
-        4 => AUDIO_4,
-        _ => AUDIO_1,
-    };
+    let audio_data = random_choice(&AUDIO_LIST);
 
     let cursor = Cursor::new(audio_data);
     let source = Decoder::new(cursor).unwrap();
@@ -176,16 +178,18 @@ fn main() {
         .expect("Error setting Ctrl+C handler");
     }
 
-    let (hours, minutes, seconds) = match args.time {
-        Some(ref input) => parse_duration(&input),
-        None => {
-            print!("Enter duration (e.g. 1h 20m 30s): ");
-            io::stdout().flush().unwrap();
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            parse_duration(&input.trim())
-        }
+    let input = if args.time.is_empty() {
+        print!("Enter duration (e.g. 1h 20m 30s): ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        input.trim().to_string()
+    } else {
+        args.time.join(" ")
     };
+
+    let (hours, minutes, seconds) = parse_duration(&input);
+
     let duration = hours * 3600 + minutes * 60 + seconds;
     let h = duration / 3600;
     let m = (duration % 3600) / 60;
