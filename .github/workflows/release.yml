@@ -36,6 +36,7 @@ jobs:
             - name: Prepare Windows binary
               if: matrix.os == 'windows-latest'
               run: |
+                  choco install go-msi -y
                   mkdir application
                   mv target/release/terminal_timer.exe application/terminal_timer_windows.exe
                   copy wix.json application\wix.json

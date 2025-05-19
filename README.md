@@ -52,6 +52,36 @@ cargo run
 .\target\release\terminal_timer.exe 45s
 ```
 
+#### (Optional) Add to PATH
+
+If you want to run `terminal_timer` from anywhere, add the binary directory to your system `PATH`:
+
+**On Linux/macOS:**
+
+```bash
+echo 'export PATH="$PATH:/path/to/terminal_timer"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**On Windows (PowerShell):**
+
+```powershell
+$env:Path += ";\path\to\terminal_timer"
+# To make it permanent, add the path to your user environment variables.
+```
+
+After this, you can simply run:
+
+```bash
+terminal_timer 45s
+```
+
+or
+
+```powershell
+terminal_timer.exe 45s
+```
+
 ## Windows MSI Installer
 
 You can now install Terminal Timer easily on Windows using the MSI installer.
