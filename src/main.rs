@@ -143,10 +143,10 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
                 }
             }
         }
-        if valid {
+        if valid && (h > 0 || m > 0 || s > 0) {
             break;
         } else {
-            print!("Invalid format. Please enter duration (e.g. 1h 20m 30s): ");
+            print!("Invalid format, timer cannot be 0. Please enter duration (e.g. 1h 20m 30s): ");
             io::stdout().flush().unwrap();
             let mut new_input = String::new();
             io::stdin().read_line(&mut new_input).unwrap();
@@ -173,7 +173,7 @@ fn main() {
     let (hours, minutes, seconds) = get_duration(args);
 
     let duration = hours * 3600 + minutes * 60 + seconds;
-    print!("Timer started for {}", duration);
+    println!("Timer started for {}", format_duration(duration));
     show_progress_bar(duration, Arc::clone(&global_abort));
 
     if global_abort.load(Ordering::SeqCst) {
