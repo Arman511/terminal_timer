@@ -66,14 +66,33 @@ jobs:
                   echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
                   echo "::set-output name=version::${GITHUB_REF#refs/tags/v}"
 
-            - name: Upload Release Assets
+            - name: Upload Release Assets (Windows)
+              if: matrix.os == 'windows-latest'
               uses: softprops/action-gh-release@v1
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      ${{ matrix.os == 'windows-latest' && 'target/release/terminal_timer_windows.exe' || '' }}
-                      ${{ matrix.os == 'windows-latest' && 'application/terminal_timer_windows.msi' || '' }}
-                      ${{ matrix.os == 'macos-latest' && 'target/release/terminal_timer_macos' || '' }}
-                      ${{ matrix.os == 'ubuntu-latest' && 'target/release/terminal_timer_linux' || '' }}
+                      target/release/terminal_timer_windows.exe
+                      application/terminal_timer_windows.msi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload Release Assets (macOS)
+              if: matrix.os == 'macos-latest'
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.create_release.outputs.tag }}
+                  files: |
+                      target/release/terminal_timer_macos
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload Release Assets (Linux)
+              if: matrix.os == 'ubuntu-latest'
+              uses: softprops/action-gh-release@v1
+              with:
+                  tag_name: ${{ steps.create_release.outputs.tag }}
+                  files: |
+                      target/release/terminal_timer_linux
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
