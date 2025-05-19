@@ -10,6 +10,56 @@ This is a simple terminal-based timer written in Rust. It shows a progress bar f
 -   Graceful `Ctrl+C` handling
 -   Stylish progress bar using `indicatif`
 
+## Windows MSI Installer
+
+You can now install Terminal Timer easily on Windows using the MSI installer.
+
+### Installation
+
+1. Download the latest `terminal_timer_windows.msi` file from the [Releases page](https://github.com/Arman511/terminal_timer/releases).
+2. Double-click the `.msi` file and follow the installation wizard.
+3. The installer will add the Terminal Timer install directory to your user PATH environment variable.
+
+### Running the Installed App
+
+Once installed, you can open a new Command Prompt or PowerShell window and simply run:
+
+```powershell
+terminal_timer_windows.exe 90s
+```
+
+or just
+
+```powershell
+terminal_timer_windows 90s
+```
+
+## Examples
+
+**Bash:**
+
+```bash
+terminal_timer 90s     # 90 seconds
+terminal_timer 2m      # 2 minutes
+terminal_timer 1h 10s  # 1 hour, 10 seconds
+```
+
+**PowerShell:**
+
+```powershell
+terminal_timer 90s     # 90 seconds
+terminal_timer 2m      # 2 minutes
+terminal_timer 1h 10s  # 1 hour, 10 seconds
+```
+
+**Command Prompt:**
+
+```CMD
+terminal_timer.exe 90s     # 90 seconds
+terminal_timer.exe 2m      # 2 minutes
+terminal_timer.exe 1h 10s  # 1 hour, 10 seconds
+```
+
 ## 🚀 How to Build
 
 1. Clone the repository:
@@ -80,48 +130,6 @@ or
 
 ```powershell
 terminal_timer.exe 45s
-```
-
-## Windows MSI Installer
-
-You can now install Terminal Timer easily on Windows using the MSI installer.
-
-### Installation
-
-1. Download the latest `terminal_timer_windows.msi` file from the [Releases page](https://github.com/Arman511/terminal_timer/releases).
-2. Double-click the `.msi` file and follow the installation wizard.
-3. The installer will add the Terminal Timer install directory to your user PATH environment variable.
-
-### Running the Installed App
-
-Once installed, you can open a new Command Prompt or PowerShell window and simply run:
-
-```powershell
-terminal_timer_windows.exe 90s
-```
-
-or just
-
-```powershell
-terminal_timer_windows 90s
-```
-
-## Examples
-
-**Bash:**
-
-```bash
-./terminal_timer 90s     # 90 seconds
-./terminal_timer 2m      # 2 minutes
-./terminal_timer 1h 10s  # 1 hour, 10 seconds
-```
-
-**PowerShell:**
-
-```powershell
-.\terminal_timer.exe 90s     # 90 seconds
-.\terminal_timer.exe 2m      # 2 minutes
-.\terminal_timer.exe 1h 10s  # 1 hour, 10 seconds
 ```
 
 ## 📂 Audio Files
