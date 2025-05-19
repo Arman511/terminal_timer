@@ -72,7 +72,7 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      target/release/terminal_timer_windows.exe
+                      application/terminal_timer_windows.exe
                       application/terminal_timer_windows.msi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
