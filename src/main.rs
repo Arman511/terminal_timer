@@ -30,7 +30,7 @@ fn play_song_with_interrupt() {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Arc::new(std::sync::Mutex::new(Sink::try_new(&stream_handle).unwrap()));
 
-    let n = rand::thread_rng().gen_range(1..=4);
+    let n = rand::rng().random_range(1..=4);
     
     // Select the embedded audio bytes based on random number
     let audio_data = match n {
