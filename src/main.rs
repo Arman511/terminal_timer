@@ -1,38 +1,37 @@
 use clap::Parser;
+use ctrlc;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use rand::Rng;
 use rodio::{Decoder, OutputStream, Sink};
+use std::sync::Arc;
 use std::{
-    fs::File,
-    io::{self, BufReader, Write},
+    io::{self, Write},
     thread,
     time::{Duration, Instant},
 };
-
 /// Simple terminal timer
 #[derive(Parser)]
 struct Args {
-    #[clap(short, long)]
-    time: Option<u64>,
+    #[clap(value_parser)]
+    time: Option<String>,
 }
+use regex::Regex;
 use std::io::Cursor;
-
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 // Embed your audio files as byte arrays:
 const AUDIO_1: &[u8] = include_bytes!("audio/1.ogg");
 const AUDIO_2: &[u8] = include_bytes!("audio/2.ogg");
 const AUDIO_3: &[u8] = include_bytes!("audio/3.ogg");
 const AUDIO_4: &[u8] = include_bytes!("audio/4.ogg");
 
-fn play_song_with_interrupt() {
-    use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-    use std::thread;
-
+fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Arc::new(std::sync::Mutex::new(Sink::try_new(&stream_handle).unwrap()));
+    let sink = Arc::new(std::sync::Mutex::new(
+        Sink::try_new(&stream_handle).unwrap(),
+    ));
 
     let n = rand::rng().random_range(1..=4);
-    
-    // Select the embedded audio bytes based on random number
     let audio_data = match n {
         1 => AUDIO_1,
         2 => AUDIO_2,
@@ -41,7 +40,6 @@ fn play_song_with_interrupt() {
         _ => AUDIO_1,
     };
 
-    // Create a Cursor over the byte slice so Decoder can read it
     let cursor = Cursor::new(audio_data);
     let source = Decoder::new(cursor).unwrap();
     sink.lock().unwrap().append(source);
@@ -64,14 +62,13 @@ fn play_song_with_interrupt() {
 
     let sink = sink.lock().unwrap();
     sink.play();
-    while !is_done.load(Ordering::SeqCst) {
+    while !is_done.load(Ordering::SeqCst) && !global_abort.load(Ordering::SeqCst) && !sink.empty() {
         thread::sleep(Duration::from_millis(100));
     }
     sink.stop();
 }
 
-
-fn show_progress_bar(seconds: u64) {
+fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
     let total_ms = seconds * 1000;
     let pb = ProgressBar::new(total_ms);
     pb.set_style(
@@ -79,14 +76,32 @@ fn show_progress_bar(seconds: u64) {
             "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {percent}% ({eta})",
         )
         .unwrap()
-        .with_key("eta", |state: &ProgressState, w: &mut dyn std::fmt::Write| {
-            write!(w, "{:.1}s", state.eta().as_secs_f64()).unwrap()
-        })
+        .with_key(
+            "eta",
+            |state: &ProgressState, w: &mut dyn std::fmt::Write| {
+                let secs = state.eta().as_secs();
+                let h = secs / 3600;
+                let m = (secs % 3600) / 60;
+                let s = secs % 60;
+                if h > 0 {
+                    write!(w, "{}h {}m {}s", h, m, s).unwrap()
+                } else if m > 0 {
+                    write!(w, "{}m {}s", m, s).unwrap()
+                } else {
+                    write!(w, "{}s", s).unwrap()
+                }
+            },
+        )
         .progress_chars("#>-"),
     );
 
     let start = Instant::now();
     while pb.position() < total_ms {
+        if global_abort.load(Ordering::SeqCst) {
+            pb.finish_with_message("Timer interrupted!");
+            return;
+        }
+
         let elapsed = start.elapsed().as_millis() as u64;
         pb.set_position(elapsed.min(total_ms));
         thread::sleep(Duration::from_millis(50));
@@ -95,25 +110,100 @@ fn show_progress_bar(seconds: u64) {
     pb.finish_with_message("Time's up!");
 }
 
+fn parse_duration(input: &str) -> (u64, u64, u64) {
+    let mut h;
+    let mut m;
+    let mut s;
+    let mut string_input = input.to_string();
+
+    let re = Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*$").unwrap();
+    loop {
+        let mut valid = true;
+
+        if !re.is_match(string_input.trim()) {
+            valid = false;
+        }
+        h = 0;
+        m = 0;
+        s = 0;
+        for part in string_input.split_whitespace() {
+            if let Some(val) = part.strip_suffix('h') {
+                match val.parse() {
+                    Ok(val) => h = val,
+                    Err(_) => valid = false,
+                }
+            } else if let Some(val) = part.strip_suffix('m') {
+                match val.parse() {
+                    Ok(val) => m = val,
+                    Err(_) => valid = false,
+                }
+            } else if let Some(val) = part.strip_suffix('s') {
+                match val.parse() {
+                    Ok(val) => s = val,
+                    Err(_) => valid = false,
+                }
+            } else {
+                match part.parse() {
+                    Ok(val) => s = val,
+                    Err(_) => valid = false,
+                }
+            }
+        }
+        if valid {
+            break;
+        } else {
+            print!("Invalid format. Please enter duration (e.g. 1h 20m 30s): ");
+            io::stdout().flush().unwrap();
+            let mut new_input = String::new();
+            io::stdin().read_line(&mut new_input).unwrap();
+            string_input = new_input.trim().to_string();
+        }
+    }
+
+    (h, m, s)
+}
+
 fn main() {
     let args = Args::parse();
 
-    let duration = match args.time {
-        Some(t) => t,
+    let global_abort = Arc::new(AtomicBool::new(false)); // <-- Track Ctrl+C
+    {
+        let global_abort = Arc::clone(&global_abort);
+        ctrlc::set_handler(move || {
+            println!("\nInterrupt received! Exiting...");
+            global_abort.store(true, Ordering::SeqCst);
+        })
+        .expect("Error setting Ctrl+C handler");
+    }
+
+    let (hours, minutes, seconds) = match args.time {
+        Some(ref input) => parse_duration(&input),
         None => {
-            print!("How many seconds should the timer be? ");
+            print!("Enter duration (e.g. 1h 20m 30s): ");
             io::stdout().flush().unwrap();
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
-            input.trim().parse().expect("Please enter a valid number")
+            parse_duration(&input.trim())
         }
     };
+    let duration = hours * 3600 + minutes * 60 + seconds;
+    let h = duration / 3600;
+    let m = (duration % 3600) / 60;
+    let s = duration % 60;
+    print!("Timer started for ");
+    if h > 0 {
+        println!("{}h {}m {}s", h, m, s);
+    } else if m > 0 {
+        println!("{}m {}s", m, s);
+    } else {
+        println!("{}s", s);
+    }
+    show_progress_bar(duration, Arc::clone(&global_abort));
 
-    println!("Timer started for {} seconds.", duration);
-    show_progress_bar(duration);
+    if global_abort.load(Ordering::SeqCst) {
+        return;
+    }
 
     println!("Playing a random song... (press Enter to stop)");
-    play_song_with_interrupt();
-
-
+    play_song_with_interrupt(global_abort);
 }
