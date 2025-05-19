@@ -45,7 +45,7 @@ jobs:
               if: matrix.os == 'windows-latest'
               uses: AliceOh/CreateWindowsInstaller@1.0.0
               with:
-                  exefile: "application/terminal_timer_windows.exe"
+                  exefile: "terminal_timer_windows.exe"
 
             - name: Rename macOS binary
               if: matrix.os == 'macos-latest'
