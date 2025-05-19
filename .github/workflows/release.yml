@@ -48,6 +48,10 @@ jobs:
               with:
                   exefile: "terminal_timer_windows.exe"
 
+            - name: Rename Windows binary
+              if: matrix.os == 'windows-latest'
+              run: mv terminal_timer_windows.exe.msi application/terminal_timer_windows.msi
+
             - name: Rename macOS binary
               if: matrix.os == 'macos-latest'
               run: mv target/release/terminal_timer target/release/terminal_timer_macos
@@ -67,7 +71,8 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      ${{ matrix.os == 'windows-latest' && 'target/release/terminal_timer_windows.exe\napplication/terminal_timer_windows.msi' || '' }}
+                      ${{ matrix.os == 'windows-latest' && 'target/release/terminal_timer_windows.exe' || '' }}
+                      ${{ matrix.os == 'windows-latest' && 'application/terminal_timer_windows.msi' || '' }}
                       ${{ matrix.os == 'macos-latest' && 'target/release/terminal_timer_macos' || '' }}
                       ${{ matrix.os == 'ubuntu-latest' && 'target/release/terminal_timer_linux' || '' }}
               env:
