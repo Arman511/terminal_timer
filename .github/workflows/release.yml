@@ -38,7 +38,7 @@ jobs:
               run: |
                   choco install go-msi -y
                   mkdir application
-                  mv target/release/terminal_timer.exe application/terminal_timer_windows.exe
+                  copy target/release/terminal_timer.exe application/terminal_timer_windows.exe
                   copy wix.json application\wix.json
 
             - name: Build Windows Installer MSI from exe file
@@ -66,7 +66,7 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      ${{ matrix.os == 'windows-latest' && 'application/terminal_timer_windows.exe\napplication/terminal_timer_windows.msi' || '' }}
+                      ${{ matrix.os == 'windows-latest' && 'target/release/terminal_timer_windows.exe\napplication/terminal_timer_windows.msi' || '' }}
                       ${{ matrix.os == 'macos-latest' && 'target/release/terminal_timer_macos' || '' }}
                       ${{ matrix.os == 'ubuntu-latest' && 'target/release/terminal_timer_linux' || '' }}
               env:
