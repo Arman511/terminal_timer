@@ -52,7 +52,31 @@ cargo run
 .\target\release\terminal_timer.exe 45s
 ```
 
-#### Examples
+## Windows MSI Installer
+
+You can now install Terminal Timer easily on Windows using the MSI installer.
+
+### Installation
+
+1. Download the latest `terminal_timer_windows.msi` file from the [Releases page](https://github.com/Arman511/terminal_timer/releases).
+2. Double-click the `.msi` file and follow the installation wizard.
+3. The installer will add the Terminal Timer install directory to your user PATH environment variable.
+
+### Running the Installed App
+
+Once installed, you can open a new Command Prompt or PowerShell window and simply run:
+
+```powershell
+terminal_timer_windows.exe 90s
+```
+
+or just
+
+```powershell
+terminal_timer_windows 90s
+```
+
+## Examples
 
 **Bash:**
 
