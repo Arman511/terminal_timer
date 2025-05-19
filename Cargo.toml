@@ -1,0 +1,10 @@
+[package]
+name = "terminal_timer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.38", features = ["derive"] }
+indicatif = "0.17.11"
+rand = "0.9.1"
+rodio = "0.20.1"
