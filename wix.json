@@ -1,0 +1,43 @@
+{
+    "product": "Terminal Timer",
+    "company": "Your Name or Org",
+    "license": "LICENSE",
+    "upgrade-code": "3c97bf2b-d7a2-42ac-a036-edd317c382dd",
+    "files": {
+        "guid": "PUT-ANOTHER-GUID-HERE",
+        "items": [
+            "terminal_timer_windows.exe"
+        ]
+    },
+    "env": {
+        "guid": "4810d8da-8881-4fbb-9699-d7993cc91576",
+        "vars": [
+            {
+                "name": "PATH",
+                "value": "[INSTALLDIR]",
+                "permanent": "no",
+                "system": "no",
+                "action": "set",
+                "part": "last"
+            }
+        ]
+    },
+    "shortcuts": {
+        "guid": "a02971d6-4d46-406f-b864-277605b46106",
+        "items": [
+            {
+                "name": "Terminal Timer",
+                "description": "A simple terminal timer tool",
+                "target": "[INSTALLDIR]\\terminal_timer_windows.exe",
+                "wdir": "INSTALLDIR",
+                "arguments": "",
+                "icon": ""
+            }
+        ]
+    },
+    "choco": {
+        "description": "Generate MSI package for Terminal Timer",
+        "tags": "terminal timer, cli, rust",
+        "license-url": "https://opensource.org/licenses/MIT"
+    }
+}
