@@ -39,9 +39,9 @@
                 <Directory Id='APPLICATIONFOLDER' Name='terminal_timer'>
                     <Component Id='License' Guid='*'>
                         <File Id='LicenseFile'
-                          DiskId='1'
-                          Source='LICENSE.rtf'
-                          KeyPath='yes' />
+              DiskId='1'
+              Source='wix\LICENSE.rtf'
+              KeyPath='yes' />
                         <RemoveFile Id='RemoveLicense' Name="LICENSE.rtf" On='uninstall' />
                         <CreateFolder Directory='APPLICATIONFOLDER'/>
                     </Component>
@@ -108,7 +108,7 @@
         </UI>
 
 
-        <WixVariable Id='WixUILicenseRtf' Value='LICENSE.rtf' />
+        <WixVariable Id='WixUILicenseRtf' Value='wix\LICENSE.rtf' />
 
     </Product>
 
