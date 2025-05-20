@@ -35,7 +35,7 @@
         "target": "[INSTALLDIR]\\terminal_timer.exe",
         "wdir": "INSTALLDIR",
         "arguments": "",
-        "icon": "[INSTALLDIR]\\logo.ico"
+        "icon": "logo.ico"
       }
     ]
   },
