@@ -29,7 +29,7 @@
       {
         "name": "Terminal Timer",
         "description": "A simple terminal timer tool",
-        "target": "[INSTALLDIR]\\terminal_timer_windows.exe",
+        "target": "[INSTALLDIR]\\terminal_timer.exe",
         "wdir": "INSTALLDIR",
         "arguments": "",
         "icon": ""

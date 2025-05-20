@@ -51,8 +51,16 @@ jobs:
 
                   # Load, modify, and save wix.json
                   $json = Get-Content wix.json | Out-String | ConvertFrom-Json
+
+                  # Generate new GUIDs for files, env, and shortcuts
                   $json.files.guid = [guid]::NewGuid().ToString()
+                  $json.env.guid = [guid]::NewGuid().ToString()
+                  $json.shortcuts.guid = [guid]::NewGuid().ToString()
+
+                  # Set version without leading 'v'
                   $json.version = "${{ steps.create_release.outputs.version }}"
+
+                  # Save updated json and copy
                   $json | ConvertTo-Json -Depth 10 | Set-Content wix.json
                   Copy-Item wix.json application\wix.json
 
@@ -72,7 +80,9 @@ jobs:
 
             - name: Rename Linux binary
               if: matrix.os == 'ubuntu-latest'
-              run: mv target/release/terminal_timer target/release/terminal_timer_linux
+              run: |
+                  mv target/release/terminal_timer target/release/terminal_timer_linux
+                  gzip -c target/release/terminal_timer > target/release/terminal_timer_linux.gz
 
             - name: Upload Release Assets (Windows)
               if: matrix.os == 'windows-latest'
@@ -101,6 +111,6 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      target/release/terminal_timer_linux
+                      target/release/terminal_timer_linux.gz
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
