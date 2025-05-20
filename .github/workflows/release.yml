@@ -82,7 +82,7 @@ jobs:
               if: matrix.os == 'ubuntu-latest'
               run: |
                   mv target/release/terminal_timer target/release/terminal_timer_linux
-                  gzip -c target/release/terminal_timer > target/release/terminal_timer_linux.gz
+                  gzip -c target/release/terminal_timer_linux > target/release/terminal_timer_linux.gz
 
             - name: Upload Release Assets (Windows)
               if: matrix.os == 'windows-latest'
