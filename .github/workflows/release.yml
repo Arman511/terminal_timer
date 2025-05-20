@@ -48,6 +48,7 @@ jobs:
                   Copy-Item target/release/terminal_timer.exe application/terminal_timer.exe
                   Copy-Item target/release/terminal_timer.exe terminal_timer.exe
                   Copy-Item target/release/terminal_timer.exe application/terminal_timer_windows.exe
+                  Copy-Item logo.ico application/logo.ico
 
                   # Load, modify, and save wix.json
                   $json = Get-Content wix.json | Out-String | ConvertFrom-Json
