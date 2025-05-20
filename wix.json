@@ -9,7 +9,8 @@
   "files": {
     "guid": "b75ea639-57d9-482e-9f7f-d3fa45fc3438",
     "items": [
-      "terminal_timer.exe"
+      "terminal_timer.exe",
+      "logo.ico"
     ]
   },
   "env": {
@@ -34,7 +35,7 @@
         "target": "[INSTALLDIR]\\terminal_timer.exe",
         "wdir": "INSTALLDIR",
         "arguments": "",
-        "icon": ""
+        "icon": "[INSTALLDIR]\\logo.ico"
       }
     ]
   },
