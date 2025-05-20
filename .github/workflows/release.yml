@@ -33,15 +33,28 @@ jobs:
             - name: Build
               run: cargo build --release
 
-            - name: Prepare Windows binary
+            - name: Create Release Metadata
+              id: create_release
+              run: |
+                  echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+                  echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+            - name: Prepare Windows binary and wix.json
               if: matrix.os == 'windows-latest'
+              shell: pwsh
               run: |
                   choco install go-msi -y
                   mkdir application
-                  copy target/release/terminal_timer.exe application/terminal_timer.exe
-                  copy target/release/terminal_timer.exe terminal_timer.exe
-                  copy target/release/terminal_timer.exe application/terminal_timer_windows.exe
-                  copy wix.json application\wix.json
+                  Copy-Item target/release/terminal_timer.exe application/terminal_timer.exe
+                  Copy-Item target/release/terminal_timer.exe terminal_timer.exe
+                  Copy-Item target/release/terminal_timer.exe application/terminal_timer_windows.exe
+
+                  # Load, modify, and save wix.json
+                  $json = Get-Content wix.json | Out-String | ConvertFrom-Json
+                  $json.files.guid = [guid]::NewGuid().ToString()
+                  $json.version = "${{ steps.create_release.outputs.version }}"
+                  $json | ConvertTo-Json -Depth 10 | Set-Content wix.json
+                  Copy-Item wix.json application\wix.json
 
             - name: Build Windows Installer MSI from exe file
               if: matrix.os == 'windows-latest'
@@ -49,7 +62,7 @@ jobs:
               with:
                   exefile: "terminal_timer.exe"
 
-            - name: Rename Windows binary
+            - name: Rename Windows MSI
               if: matrix.os == 'windows-latest'
               run: mv terminal_timer.exe.msi application/terminal_timer_windows.msi
 
@@ -60,12 +73,6 @@ jobs:
             - name: Rename Linux binary
               if: matrix.os == 'ubuntu-latest'
               run: mv target/release/terminal_timer target/release/terminal_timer_linux
-
-            - name: Create Release
-              id: create_release
-              run: |
-                  echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
-                  echo "::set-output name=version::${GITHUB_REF#refs/tags/v}"
 
             - name: Upload Release Assets (Windows)
               if: matrix.os == 'windows-latest'
