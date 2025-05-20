@@ -35,10 +35,21 @@ fn random_choice<'a, T>(list: &'a [T]) -> &'a T {
 }
 
 fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Arc::new(std::sync::Mutex::new(
-        Sink::try_new(&stream_handle).unwrap(),
-    ));
+    let (_stream, stream_handle) = match OutputStream::try_default() {
+        Ok(result) => result,
+        Err(e) => {
+            eprintln!("Audio output error: {e}. Skipping playback.");
+            return;
+        }
+    };
+
+    let sink = match Sink::try_new(&stream_handle) {
+        Ok(s) => Arc::new(std::sync::Mutex::new(s)),
+        Err(e) => {
+            eprintln!("Sink creation error: {e}. Skipping playback.");
+            return;
+        }
+    };
 
     let audio_data = random_choice(&AUDIO_LIST);
 
