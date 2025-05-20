@@ -39,51 +39,72 @@ jobs:
                   echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
                   echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-            - name: Prepare Windows binary and wix.json
+            - name: Set Cargo.toml version to match Git tag (Windows)
               if: matrix.os == 'windows-latest'
               shell: pwsh
               run: |
-                  choco install go-msi -y
+                  $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
+                  Write-Output "Updating Cargo.toml version to $version"
+                  (Get-Content Cargo.toml) -replace '^version = ".*"', "version = `"$version`"" | Set-Content Cargo.toml
+
+            - name: Install cargo-wix and WiX Toolset
+              if: matrix.os == 'windows-latest'
+              shell: pwsh
+              run: |
+                  # Install WiX Toolset
+                  choco install wixtoolset -y
+                  $wixPath = Get-ChildItem "C:\Program Files (x86)" -Directory | Where-Object { $_.Name -like "WiX Toolset v*" } | Sort-Object Name -Descending | Select-Object -First 1
+                  if ($wixPath) {
+                    $env:Path += ";$($wixPath.FullName)\bin"
+                  } else {
+                    Write-Error "WiX Toolset not found in Program Files (x86)"
+                    exit 1
+                  }
+                  # Install cargo-wix
+                  cargo install cargo-wix
+
+            - name: Build Windows installer with cargo wix
+              if: matrix.os == 'windows-latest'
+              run: |
+                  cargo wix
+
+            - name: Rename Windows MSI and EXE with version and arch
+              if: matrix.os == 'windows-latest'
+              shell: pwsh
+              run: |
                   mkdir application
-                  Copy-Item target/release/terminal_timer.exe application/terminal_timer.exe
-                  Copy-Item target/release/terminal_timer.exe terminal_timer.exe
-                  Copy-Item target/release/terminal_timer.exe application/terminal_timer_windows.exe
-                  Copy-Item logo.ico application/logo.ico
+                  $version = "${{ steps.create_release.outputs.version }}"
+                  $arch = "x86_64"
+                  $newNameBase = "terminal_timer-$version-$arch-windows"
 
-                  # Load, modify, and save wix.json
-                  $json = Get-Content wix.json | Out-String | ConvertFrom-Json
+                  # Rename MSI produced by cargo wix (usually terminal_timer.msi)
+                  Rename-Item -Path ".\\target\\wix\\terminal_timer-$version-$arch.msi" -NewName "$newNameBase.msi"
+                  # Move MSI into application folder
+                  Move-Item "$newNameBase.msi" -Destination "application\$newNameBase.msi"
 
-                  # Generate new GUIDs for files, env, and shortcuts
-                  $json.files.guid = [guid]::NewGuid().ToString()
-                  $json.env.guid = [guid]::NewGuid().ToString()
-                  $json.shortcuts.guid = [guid]::NewGuid().ToString()
+                  # Rename EXE built by cargo build
+                  Rename-Item -Path ".\\target\\release\\terminal_timer.exe" -NewName "$newNameBase.exe"
+                  # Move EXE into application folder
+                  Move-Item "$newNameBase.exe" -Destination "application\$newNameBase.exe"
 
-                  # Set version without leading 'v'
-                  $json.version = "${{ steps.create_release.outputs.version }}"
-
-                  # Save updated json and copy
-                  $json | ConvertTo-Json -Depth 10 | Set-Content wix.json
-                  Copy-Item wix.json application\wix.json
-
-            - name: Build Windows Installer MSI from exe file
-              if: matrix.os == 'windows-latest'
-              uses: AliceOh/CreateWindowsInstaller@1.0.0
-              with:
-                  exefile: "terminal_timer.exe"
-
-            - name: Rename Windows MSI
-              if: matrix.os == 'windows-latest'
-              run: mv terminal_timer.exe.msi application/terminal_timer_windows.msi
-
-            - name: Rename macOS binary
+            - name: Rename macOS binary with version and arch
               if: matrix.os == 'macos-latest'
-              run: mv target/release/terminal_timer target/release/terminal_timer_macos
+              run: |
+                  version=${{ steps.create_release.outputs.version }}
+                  arch=$(uname -m)
+                  newName="terminal_timer-$version-$arch-macos"
+                  mv target/release/terminal_timer target/release/$newName
+                  chmod +x target/release/$newName
 
-            - name: Rename Linux binary
+            - name: Rename Linux binary with version and arch
               if: matrix.os == 'ubuntu-latest'
               run: |
-                  mv target/release/terminal_timer target/release/terminal_timer_linux
-                  gzip -c target/release/terminal_timer_linux > target/release/terminal_timer_linux.gz
+                  version=${{ steps.create_release.outputs.version }}
+                  arch=$(uname -m)
+                  newName="terminal_timer-$version-$arch-linux"
+                  mv target/release/terminal_timer target/release/$newName
+                  chmod +x target/release/$newName
+                  gzip -c target/release/$newName > target/release/$newName.gz
 
             - name: Upload Release Assets (Windows)
               if: matrix.os == 'windows-latest'
@@ -91,10 +112,15 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      application/terminal_timer_windows.exe
-                      application/terminal_timer_windows.msi
+                      application/terminal_timer-${{ steps.create_release.outputs.version }}-x86_64-windows.exe
+                      application/terminal_timer-${{ steps.create_release.outputs.version }}-x86_64-windows.msi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Get architecture (macOS/Linux)
+              if: matrix.os != 'windows-latest'
+              id: arch
+              run: echo "arch=$(uname -m)" >> $GITHUB_OUTPUT
 
             - name: Upload Release Assets (macOS)
               if: matrix.os == 'macos-latest'
@@ -102,7 +128,7 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      target/release/terminal_timer_macos
+                      target/release/terminal_timer-${{ steps.create_release.outputs.version }}-${{ steps.arch.outputs.arch }}-macos
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -112,6 +138,6 @@ jobs:
               with:
                   tag_name: ${{ steps.create_release.outputs.tag }}
                   files: |
-                      target/release/terminal_timer_linux.gz
+                      target/release/terminal_timer-${{ steps.create_release.outputs.version }}-${{ steps.arch.outputs.arch }}-linux.gz
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
