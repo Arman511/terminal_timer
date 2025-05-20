@@ -4,7 +4,7 @@ authors = ["Arman511"]
 version = "1.1.0"
 edition = "2024"
 license-file = "LICENSE.rtf"
-description = "A terminal-based timer tool with audio notifications"
+description = "A terminal-based timer tool with song notifications"
 homepage = "https://github.com/Arman511/terminal_timer"
 
 
