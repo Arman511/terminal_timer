@@ -101,15 +101,19 @@ jobs:
                   $arch = "x86_64"
                   $newNameBase = "terminal_timer-$version-$arch-windows"
 
-                  # Rename MSI produced by cargo wix (usually terminal_timer.msi)
-                  Rename-Item -Path ".\\target\\wix\\terminal_timer-$version-$arch.msi" -NewName "$newNameBase.msi"
-                  # Move MSI into application folder
-                  Move-Item "$newNameBase.msi" -Destination "application\$newNameBase.msi"
+                  # Find the MSI file in target\wix
+                  $msiFile = Get-ChildItem ".\target\wix\*.msi" | Select-Object -First 1
 
-                  # Rename EXE built by cargo build
-                  Rename-Item -Path ".\\target\\release\\terminal_timer.exe" -NewName "$newNameBase.exe"
-                  # Move EXE into application folder
-                  Move-Item "$newNameBase.exe" -Destination "application\$newNameBase.exe"
+                  if (-not $msiFile) {
+                      Write-Error "MSI file not found in target\wix"
+                      exit 1
+                  }
+
+                  # Rename and move MSI
+                  Move-Item $msiFile.FullName -Destination "application\$newNameBase.msi"
+
+                  # Rename and move EXE
+                  Move-Item ".\target\release\terminal_timer.exe" -Destination "application\$newNameBase.exe"
 
             - name: Rename macOS binary with version and arch
               if: matrix.os == 'macos-latest'
