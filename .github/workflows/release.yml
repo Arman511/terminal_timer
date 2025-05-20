@@ -33,11 +33,35 @@ jobs:
             - name: Build
               run: cargo build --release
 
-            - name: Create Release Metadata
+            - name: Create Release Metadata (bash)
               id: create_release
+              if: matrix.os != 'windows-latest'
+              shell: bash
               run: |
-                  echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-                  echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+                  tag="${GITHUB_REF#refs/tags/}"
+                  version="${tag#v}"
+                  echo "tag=$tag" >> $GITHUB_OUTPUT
+                  echo "version=$version" >> $GITHUB_OUTPUT
+
+            - name: Create Release Metadata (PowerShell)
+              id: create_release_windows
+              if: matrix.os == 'windows-latest'
+              shell: pwsh
+              run: |
+                  $tag = $env:GITHUB_REF -replace '^refs/tags/', ''
+                  $version = $tag -replace '^v', ''
+                  echo "tag=$tag" >> $env:GITHUB_OUTPUT
+                  echo "version=$version" >> $env:GITHUB_OUTPUT
+
+            - name: Debug version (Windows)
+              if: matrix.os == 'windows-latest'
+              run: echo "Version is ${{ steps.create_release_windows.outputs.version }}"
+              shell: pwsh
+
+            - name: Debug version (Linux/macOS)
+              if: matrix.os != 'windows-latest'
+              run: echo "Version is ${{ steps.create_release.outputs.version }}"
+              shell: bash
 
             - name: Set Cargo.toml version to match Git tag (Windows)
               if: matrix.os == 'windows-latest'
@@ -73,7 +97,7 @@ jobs:
               shell: pwsh
               run: |
                   mkdir application
-                  $version = "${{ steps.create_release.outputs.version }}"
+                  $version = "${{ steps.create_release_windows.outputs.version }}"
                   $arch = "x86_64"
                   $newNameBase = "terminal_timer-$version-$arch-windows"
 
@@ -110,10 +134,10 @@ jobs:
               if: matrix.os == 'windows-latest'
               uses: softprops/action-gh-release@v1
               with:
-                  tag_name: ${{ steps.create_release.outputs.tag }}
+                  tag_name: ${{ steps.create_release_windows.outputs.tag }}
                   files: |
-                      application/terminal_timer-${{ steps.create_release.outputs.version }}-x86_64-windows.exe
-                      application/terminal_timer-${{ steps.create_release.outputs.version }}-x86_64-windows.msi
+                      application/terminal_timer-${{ steps.create_release_windows.outputs.version }}-x86_64-windows.exe
+                      application/terminal_timer-${{ steps.create_release_windows.outputs.version }}-x86_64-windows.msi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

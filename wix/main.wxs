@@ -1,115 +1,130 @@
 <?xml version='1.0' encoding='windows-1252'?>
-<?if $(sys.BUILDARCH) = x64 or $(sys.BUILDARCH) = arm64 ?>
-    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
-<?else ?>
-    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
-<?endif ?>
+<?if $(sys.BUILDARCH) = x64 or $(sys.BUILDARCH) = arm64?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder"?>
+<?else?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder"?>
+<?endif?>
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
-    <Product
-        Id='*'
-        Name='Terminal Timer'
-        UpgradeCode='EE74180F-2DBC-4247-A3FE-D74CDE0EE8A7'
-        Manufacturer='Arman511'
-        Language='1033'
-        Codepage='1252'
-        Version='$(var.Version)'>
+  <Product
+    Id='*'
+    Name='Terminal Timer'
+    UpgradeCode='EE74180F-2DBC-4247-A3FE-D74CDE0EE8A7'
+    Manufacturer='Arman511'
+    Language='1033'
+    Codepage='1252'
+    Version='$(var.Version)'>
 
-        <Package Id='*'
-            Keywords='Installer'
-            Description='A terminal-based timer tool with song notifications'
-            Manufacturer='Arman511'
-            InstallerVersion='450'
-            Languages='1033'
-            Compressed='yes'
-            InstallScope='perMachine'
-            SummaryCodepage='1252'
-            />
+    <Package Id='*'
+      Keywords='Installer'
+      Description='A terminal-based timer tool with song notifications'
+      Manufacturer='Arman511'
+      InstallerVersion='450'
+      Languages='1033'
+      Compressed='yes'
+      InstallScope='perMachine'
+      SummaryCodepage='1252'
+    />
 
-        <MajorUpgrade
-            Schedule='afterInstallInitialize'
-            DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
+    <MajorUpgrade
+      Schedule='afterInstallInitialize'
+      DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.' />
 
-        <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1'/>
-        <Property Id='DiskPrompt' Value='terminal_timer Installation'/>
+    <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+    <Property Id='DiskPrompt' Value='terminal_timer Installation' />
+    <Icon Id='ProductICO' SourceFile='wix\logo.ico' />
+    <Property Id='ARPPRODUCTICON' Value='ProductICO' />
 
-        <Directory Id='TARGETDIR' Name='SourceDir'>
-            <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
-                <Directory Id='APPLICATIONFOLDER' Name='terminal_timer'>
-                    <Component Id='License' Guid='*'>
-                        <File Id='LicenseFile'
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
+        <Directory Id='APPLICATIONFOLDER' Name='terminal_timer'>
+          <Component Id='License' Guid='*'>
+            <File Id='LicenseFile'
               DiskId='1'
               Source='wix\LICENSE.rtf'
               KeyPath='yes' />
-                        <RemoveFile Id='RemoveLicense' Name="LICENSE.rtf" On='uninstall' />
-                        <CreateFolder Directory='APPLICATIONFOLDER'/>
-                    </Component>
-                    
-                    <Directory Id='Bin' Name='bin'>
-                        <Component Id='Path' Guid='1037B5AC-F839-4E15-A2BB-32D3B67DF94A' KeyPath='yes'>
-                            <Environment
-                                Id='PATH'
-                                Name='PATH'
-                                Value='[Bin]'
-                                Permanent='no'
-                                Part='last'
-                                Action='set'
-                                System='yes'/>
-                        </Component>
-                        <Component Id='binary0' Guid='*'>
-                            <File
-                                Id='exe0'
-                                Name='terminal_timer.exe'
-                                DiskId='1'
-                                Source='$(var.CargoTargetBinDir)\terminal_timer.exe'
-                                KeyPath='yes'/>
-                        </Component>
-                    </Directory>
-                </Directory>
-            </Directory>
+            <RemoveFile Id='RemoveLicense' Name="LICENSE.rtf" On='uninstall' />
+            <CreateFolder Directory='APPLICATIONFOLDER' />
+          </Component>
+
+          <Directory Id='Bin' Name='bin'>
+            <Component Id='Path' Guid='1037B5AC-F839-4E15-A2BB-32D3B67DF94A' KeyPath='yes'>
+              <Environment
+                Id='PATH'
+                Name='PATH'
+                Value='[Bin]'
+                Permanent='no'
+                Part='last'
+                Action='set'
+                System='yes' />
+            </Component>
+            <Component Id='binary0' Guid='*'>
+              <File
+                Id='exe0'
+                Name='terminal_timer.exe'
+                DiskId='1'
+                Source='$(var.CargoTargetBinDir)\terminal_timer.exe'
+                KeyPath='yes' />
+              <Shortcut
+                Id='StartMenuShortcut'
+                Directory='ApplicationProgramsFolder'
+                Name='Terminal Timer'
+                Description='Start Terminal Timer'
+                WorkingDirectory='APPLICATIONFOLDER'
+                Icon='ProductICO' />
+              <Shortcut
+                Id='DesktopShortcut'
+                Directory='DesktopFolder'
+                Name='Terminal Timer'
+                Description='Start Terminal Timer'
+                WorkingDirectory='APPLICATIONFOLDER'
+                Advertise='no'
+                Icon='ProductICO' />
+            </Component>
+          </Directory>
         </Directory>
+      </Directory>
+      <Directory Id='ProgramMenuFolder'>
+        <Directory Id='ApplicationProgramsFolder' Name='terminal_timer' />
+      </Directory>
+    </Directory>
 
-        <Feature
-            Id='Binaries'
-            Title='Application'
-            Description='Installs all binaries and the license.'
-            Level='1'
-            ConfigurableDirectory='APPLICATIONFOLDER'
-            AllowAdvertise='no'
-            Display='expand'
-            Absent='disallow'>
-            <ComponentRef Id='License'/>
-            
-            <ComponentRef Id='binary0'/>
+    <Feature
+      Id='Binaries'
+      Title='Application'
+      Description='Installs all binaries and the license.'
+      Level='1'
+      ConfigurableDirectory='APPLICATIONFOLDER'
+      AllowAdvertise='no'
+      Display='expand'
+      Absent='disallow'>
+      <ComponentRef Id='License' />
 
-            <Feature
-                Id='Environment'
-                Title='PATH Environment Variable'
-                Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
-                Level='1'
-                Absent='allow'>
-                <ComponentRef Id='Path'/>
-            </Feature>
-        </Feature>
+      <ComponentRef Id='binary0' />
 
-        <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
+      <Feature
+        Id='Environment'
+        Title='PATH Environment Variable'
+        Description='Add the install location of the [ProductName] executable to the PATH system environment variable. This allows the [ProductName] executable to be called from any location.'
+        Level='1'
+        Absent='allow'>
+        <ComponentRef Id='Path' />
+      </Feature>
+    </Feature>
 
-        
-        <Icon Id='ProductICO' SourceFile='wix\logo.ico'/>
-        <Property Id='ARPPRODUCTICON' Value='ProductICO' />
-
-        <Property Id='ARPHELPLINK' Value='https://github.com/Arman511/terminal_timer'/>
-        
-        <UI>
-            <UIRef Id='WixUI_FeatureTree'/>
-           
-            
-        </UI>
+    <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize' />
 
 
-        <WixVariable Id='WixUILicenseRtf' Value='wix\LICENSE.rtf' />
+    <Property Id='ARPHELPLINK' Value='https://github.com/Arman511/terminal_timer' />
 
-    </Product>
+    <UI>
+      <UIRef Id='WixUI_FeatureTree' />
+    </UI>
+
+
+    <WixVariable Id='WixUILicenseRtf' Value='wix\LICENSE.rtf' />
+
+  </Product>
 
 </Wix>
