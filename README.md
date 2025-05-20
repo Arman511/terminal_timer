@@ -12,7 +12,7 @@ This is a simple terminal-based timer written in Rust. It shows a progress bar f
 
 ## Windows MSI Installer
 
-You can now install Terminal Timer easily on Windows using the MSI installer.
+You can now install Terminal Timer easily on Windows using the MSI installer. Make sure if you already have it installed uninstall the old one.
 
 ### Installation
 
