@@ -2,23 +2,23 @@
 
 ## 📖 Table of Contents
 
-1. [Features](#-features)
-2. [Windows MSI Installer](#-windows-msi-installer)
+1. [Features](#📦-features)
+2. [Windows MSI Installer](#windows-msi-installer)
     - [Installation](#installation)
     - [Running the Installed App](#running-the-installed-app)
-3. [Usage Examples](#-usage-examples)
+3. [Usage Examples](#📝-usage-examples)
     - [With a Message](#with-a-message)
     - [Without a Message](#without-a-message)
     - [Interactive Mode](#interactive-mode)
     - [PowerShell](#powershell)
     - [Command Prompt](#command-prompt)
-4. [How to Build](#-how-to-build)
+4. [How to Build](#🚀-how-to-build)
     - [Run from Source](#run-from-source)
     - [Run Built Binary](#run-built-binary)
-5. [Audio Files](#-audio-files)
-6. [Dependencies](#-dependencies)
-7. [Music Credits](#-music-credits)
-8. [Additional Tests](#-additional-tests)
+5. [Audio Files](#📂-audio-files)
+6. [Dependencies](#🛠️-dependencies)
+7. [Music Credits](#🎵-music-credits)
+8. [Additional Tests](#additional-tests)
 
 ## 📦 Features
 
