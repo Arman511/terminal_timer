@@ -214,13 +214,13 @@ The timer music used in this project is sourced from Pixabay.
 -   Start a timer for 1 hour, 20 minutes, and 30 seconds:
 
     ```bash
-    cargo run -- --time "1h 20m 30s"
+    cargo run "1h 20m 30s"
     ```
 
 -   Start a timer for 45 seconds with a custom message:
 
     ```bash
-    cargo run -- --time "45" --message "Break time!"
+    cargo run "45" --message "Break time!"
     ```
 
 -   Interactive mode:
