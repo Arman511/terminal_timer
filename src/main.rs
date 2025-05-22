@@ -11,9 +11,9 @@ use std::{
     time::{Duration, Instant},
 };
 /// terminal timer
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(
-    name = "Terminal Timer",  
+    name = "Terminal Timer",
     author,
     version,
     about = "A simple terminal timer with song notification",
@@ -24,6 +24,9 @@ struct Args {
     /// Timer duration (e.g. 1h 20m 30s)
     #[arg(value_name = "TIME", required = false)]
     time: Vec<String>,
+    /// Message to print after timer ends
+    #[arg(short, long, value_name = "MESSAGE", default_value = "")]
+    message: String,
 }
 
 use regex::Regex;
@@ -180,6 +183,26 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
     (h, m, s)
 }
 
+fn get_duration_and_message(args: Args) -> ((u64, u64, u64), String) {
+    let (input, message) = if args.time.is_empty() {
+        print!("Enter duration (e.g. 1h 20m 30s): ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        let input = input.trim().to_string();
+        print!("Enter message (optional, press Enter to skip): ");
+        io::stdout().flush().unwrap();
+        let mut message = String::new();
+        io::stdin().read_line(&mut message).unwrap();
+        let message = message.trim().to_string();
+        (input, message)
+    } else {
+        (args.time.join(" "), args.message)
+    };
+    let (hours, minutes, seconds) = parse_duration(&input);
+    ((hours, minutes, seconds), message)
+}
+
 fn main() {
     let args = Args::parse();
     let global_abort = Arc::new(AtomicBool::new(false));
@@ -192,12 +215,16 @@ fn main() {
         })
         .expect("Error setting Ctrl+C handler");
     }
-    let (hours, minutes, seconds) = get_duration(args);
+    let ((hours, minutes, seconds), message) = get_duration_and_message(args.clone());
     let duration = hours * 3600 + minutes * 60 + seconds;
     println!("Timer started for {}", format_duration(duration));
     show_progress_bar(duration, Arc::clone(&global_abort));
     if global_abort.load(Ordering::SeqCst) {
         return;
+    }
+    if !message.trim().is_empty() {
+        // Print colored heading and message using ANSI escape codes
+        println!("\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m", message);
     }
     println!("Playing a random song... (press Enter to stop)");
     play_song_with_interrupt(global_abort);
@@ -213,18 +240,4 @@ fn format_duration(duration: u64) -> String {
         return format!("{}m {}s", m, s);
     }
     format!("{}s", s)
-}
-
-fn get_duration(args: Args) -> (u64, u64, u64) {
-    let input = if args.time.is_empty() {
-        print!("Enter duration (e.g. 1h 20m 30s): ");
-        io::stdout().flush().unwrap();
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
-        input.trim().to_string()
-    } else {
-        args.time.join(" ")
-    };
-    let (hours, minutes, seconds) = parse_duration(&input);
-    (hours, minutes, seconds)
 }
