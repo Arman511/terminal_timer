@@ -102,6 +102,7 @@ fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
 }
 
 fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
+    println!("\n");
     let total_ms = seconds * 1000;
     let pb = ProgressBar::new(total_ms);
     pb.set_style(
@@ -131,6 +132,7 @@ fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
         thread::sleep(Duration::from_millis(50));
     }
     pb.finish_with_message("Time's up!");
+    println!("\n");
 }
 
 fn parse_duration(input: &str) -> (u64, u64, u64) {
@@ -224,7 +226,6 @@ fn main() {
     }
     if !message.trim().is_empty() {
         // Print colored heading and message using ANSI escape codes
-        println!();
         println!("\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m\n", message);
     }
     println!("Playing a random song... (press Enter to stop)");
