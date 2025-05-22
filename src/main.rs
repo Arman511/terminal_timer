@@ -138,7 +138,7 @@ fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
     println!("\n");
 }
 
-fn parse_duration(input: &str) -> (u64, u64, u64) {
+pub fn parse_duration(input: &str) -> (u64, u64, u64) {
     let mut h;
     let mut m;
     let mut s;
@@ -245,7 +245,7 @@ fn main() {
     play_song_with_interrupt(global_abort);
 }
 
-fn format_duration(duration: u64) -> String {
+pub fn format_duration(duration: u64) -> String {
     let h = duration / 3600;
     let m = (duration % 3600) / 60;
     let s = duration % 60;
@@ -256,3 +256,6 @@ fn format_duration(duration: u64) -> String {
     }
     format!("{}s", s)
 }
+
+#[cfg(test)]
+mod tests;
