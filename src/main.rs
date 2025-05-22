@@ -140,27 +140,29 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
     let mut s;
     let mut string_input = input.to_string();
     let re = Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*$").unwrap();
+
     loop {
         let mut valid = true;
         if !re.is_match(string_input.trim()) {
             valid = false;
         }
+
         h = 0;
         m = 0;
         s = 0;
         for part in string_input.split_whitespace() {
             parse_time_part(part, &mut h, &mut m, &mut s, &mut valid);
         }
+
         if valid && (h > 0 || m > 0 || s > 0) {
             break;
         } else {
-            print!(
-                "Invalid input or zero duration. Please provide a valid duration (e.g., 1h 20m 30s): "
+            string_input = get_user_input(
+                "Invalid input or zero duration. Please provide a valid duration (e.g., 1h 20m 30s): ",
             );
-            let new_input = get_user_input("");
-            string_input = new_input;
         }
     }
+
     (h, m, s)
 }
 
@@ -189,13 +191,18 @@ fn parse_time_part(part: &str, h: &mut u64, m: &mut u64, s: &mut u64, valid: &mu
 }
 
 fn get_duration_and_message(args: &Args) -> ((u64, u64, u64), String) {
-    let (input, message) = if args.time.is_empty() {
-        let input = get_user_input("\nEnter duration (e.g. 1h 20m 30s): ");
-        let message = get_user_input("Enter message (optional, press Enter to skip): ");
-        (input, message)
+    let input = if args.time.is_empty() {
+        get_user_input("Enter duration (e.g. 1h 20m 30s): ")
     } else {
-        (args.time.join(" "), args.message.clone())
+        args.time.join(" ")
     };
+
+    let message = if args.message.is_empty() {
+        get_user_input("Enter message (optional, press Enter to skip): ")
+    } else {
+        args.message.clone()
+    };
+
     let (hours, minutes, seconds) = parse_duration(&input);
     ((hours, minutes, seconds), message)
 }
