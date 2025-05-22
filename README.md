@@ -1,6 +1,24 @@
 # ⏱️ Terminal Timer with Music
 
-A simple, cross-platform terminal timer written in Rust. Shows a progress bar for a given duration, plays a random embedded audio track when the timer ends, and can display a custom message (e.g., a reminder for your task). You can interrupt the timer with `Ctrl+C` or stop the music by pressing `Enter`.
+## 📖 Table of Contents
+
+1. [Features](#-features)
+2. [Windows MSI Installer](#-windows-msi-installer)
+    - [Installation](#installation)
+    - [Running the Installed App](#running-the-installed-app)
+3. [Usage Examples](#-usage-examples)
+    - [With a Message](#with-a-message)
+    - [Without a Message](#without-a-message)
+    - [Interactive Mode](#interactive-mode)
+    - [PowerShell](#powershell)
+    - [Command Prompt](#command-prompt)
+4. [How to Build](#-how-to-build)
+    - [Run from Source](#run-from-source)
+    - [Run Built Binary](#run-built-binary)
+5. [Audio Files](#-audio-files)
+6. [Dependencies](#-dependencies)
+7. [Music Credits](#-music-credits)
+8. [Additional Tests](#-additional-tests)
 
 ## 📦 Features
 
@@ -37,14 +55,14 @@ terminal_timer 90s
 
 ## 📝 Usage Examples
 
-**With a message:**
+### With a Message
 
 ```bash
 terminal_timer 1h --message "Wash car"
 terminal_timer 20m -m "Take a break!"
 ```
 
-**Without a message:**
+### Without a Message
 
 ```bash
 terminal_timer 90s
@@ -52,7 +70,7 @@ terminal_timer 2m
 terminal_timer 1h 10s
 ```
 
-**Interactive mode:**
+### Interactive Mode
 
 ```bash
 terminal_timer
@@ -60,13 +78,13 @@ terminal_timer
 # Enter message (optional, press Enter to skip): Make tea
 ```
 
-**PowerShell:**
+### PowerShell
 
 ```powershell
 terminal_timer 1h 10s -m "Check laundry"
 ```
 
-**Command Prompt:**
+### Command Prompt
 
 ```cmd
 terminal_timer.exe 2m --message "Stretch!"
@@ -88,8 +106,6 @@ terminal_timer.exe 2m --message "Stretch!"
     ```
 
 3.  The optimized binary will be at `target/release/terminal_timer` (Linux/macOS) or `target/release/terminal_timer.exe` (Windows).
-
-## ▶️ How to Run
 
 ### Run from Source
 
@@ -177,3 +193,39 @@ The timer music used in this project is sourced from Pixabay.
 -   Music by [Lesiakower](https://pixabay.com/users/lesiakower-25701529/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=168821) from [Pixabay](https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=168821)
 -   Music by [dferun](https://pixabay.com/users/dferun-20599211/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=332384) from [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=332384)
 -   Music by [Ellis Checkley](https://pixabay.com/users/ezioblade4life-37897481/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=155671) from [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=155671)
+
+## Additional Tests
+
+### Unit Tests
+
+-   **`parse_duration`**:
+
+    -   Handles valid inputs with hours, minutes, and seconds.
+    -   Handles plain numeric inputs as seconds.
+    -   Rejects invalid formats and empty inputs.
+    -   Handles large values for hours, minutes, and seconds.
+
+-   **`format_duration`**:
+    -   Formats durations with hours, minutes, and seconds.
+    -   Handles zero duration.
+    -   Handles large durations.
+
+### Example Commands
+
+-   Start a timer for 1 hour, 20 minutes, and 30 seconds:
+
+    ```bash
+    cargo run -- --time "1h 20m 30s"
+    ```
+
+-   Start a timer for 45 seconds with a custom message:
+
+    ```bash
+    cargo run -- --time "45" --message "Break time!"
+    ```
+
+-   Interactive mode:
+    ```bash
+    cargo run
+    ```
+    Enter the duration and message when prompted.

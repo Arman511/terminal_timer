@@ -59,6 +59,13 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_duration_large_values() {
+        let input = "1000h 2000m 3000s";
+        let (h, m, s) = parse_duration(input);
+        assert_eq!((h, m, s), (1000, 2000, 3000));
+    }
+
+    #[test]
     fn test_format_duration_hours_minutes_seconds() {
         let result = format_duration(3661); // 1 hour, 1 minute, 1 second
         assert_eq!(result, "1h 1m 1s");
@@ -80,5 +87,17 @@ mod tests {
     fn test_format_duration_only_hours() {
         let result = format_duration(7200); // 2 hours
         assert_eq!(result, "2h 0m 0s");
+    }
+
+    #[test]
+    fn test_format_duration_zero() {
+        let result = format_duration(0);
+        assert_eq!(result, "0s");
+    }
+
+    #[test]
+    fn test_format_duration_large_duration() {
+        let result = format_duration(90061); // 25 hours, 1 minute, 1 second
+        assert_eq!(result, "25h 1m 1s");
     }
 }
