@@ -1,8 +1,10 @@
 use clap::Parser;
 use ctrlc;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
+use once_cell::sync::Lazy;
 use rand::prelude::*;
 use rand::rng;
+use regex::Regex;
 use rodio::{Decoder, OutputStream, Sink};
 use std::sync::Arc;
 use std::{
@@ -29,7 +31,9 @@ struct Args {
     message: String,
 }
 
-use regex::Regex;
+static DURATION_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*(\d+)?$|^\d+$").unwrap());
+
 use std::io::Cursor;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
@@ -138,26 +142,25 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
     let mut h;
     let mut m;
     let mut s;
-    let mut string_input = input.to_string();
-    let re = Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*$").unwrap();
+    let mut duration_input = input.to_string();
 
     loop {
         let mut valid = true;
-        if !re.is_match(string_input.trim()) {
+        if !DURATION_REGEX.is_match(duration_input.trim()) {
             valid = false;
         }
 
         h = 0;
         m = 0;
         s = 0;
-        for part in string_input.split_whitespace() {
+        for part in duration_input.split_whitespace() {
             parse_time_part(part, &mut h, &mut m, &mut s, &mut valid);
         }
 
         if valid && (h > 0 || m > 0 || s > 0) {
             break;
         } else {
-            string_input = get_user_input(
+            duration_input = get_user_input(
                 "Invalid input or zero duration. Please provide a valid duration (e.g., 1h 20m 30s): ",
             );
         }

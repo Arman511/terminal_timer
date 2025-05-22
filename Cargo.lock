@@ -902,6 +902,7 @@ dependencies = [
  "clap",
  "ctrlc",
  "indicatif",
+ "once_cell",
  "rand",
  "regex",
  "rodio",
