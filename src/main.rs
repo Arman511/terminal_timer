@@ -32,7 +32,7 @@ struct Args {
 }
 
 static DURATION_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*(\d+)?$|^\d+$").unwrap());
+    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?$|^\d+$").unwrap());
 
 use std::io::Cursor;
 use std::sync::atomic::AtomicBool;
