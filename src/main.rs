@@ -183,7 +183,7 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
     (h, m, s)
 }
 
-fn get_duration_and_message(args: Args) -> ((u64, u64, u64), String) {
+fn get_duration_and_message(args: &Args) -> ((u64, u64, u64), String) {
     let (input, message) = if args.time.is_empty() {
         print!("Enter duration (e.g. 1h 20m 30s): ");
         io::stdout().flush().unwrap();
@@ -197,7 +197,7 @@ fn get_duration_and_message(args: Args) -> ((u64, u64, u64), String) {
         let message = message.trim().to_string();
         (input, message)
     } else {
-        (args.time.join(" "), args.message)
+        (args.time.join(" "), args.message.clone())
     };
     let (hours, minutes, seconds) = parse_duration(&input);
     ((hours, minutes, seconds), message)
@@ -215,7 +215,7 @@ fn main() {
         })
         .expect("Error setting Ctrl+C handler");
     }
-    let ((hours, minutes, seconds), message) = get_duration_and_message(args.clone());
+    let ((hours, minutes, seconds), message) = get_duration_and_message(&args);
     let duration = hours * 3600 + minutes * 60 + seconds;
     println!("Timer started for {}", format_duration(duration));
     show_progress_bar(duration, Arc::clone(&global_abort));
@@ -224,7 +224,8 @@ fn main() {
     }
     if !message.trim().is_empty() {
         // Print colored heading and message using ANSI escape codes
-        println!("\n\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m\n", message);
+        println!();
+        println!("\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m\n", message);
     }
     println!("Playing a random song... (press Enter to stop)");
     play_song_with_interrupt(global_abort);
