@@ -6,7 +6,10 @@ use rand::prelude::*;
 use rand::rng;
 use regex::Regex;
 use rodio::{Decoder, OutputStream, Sink};
+use std::io::Cursor;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 use std::{
     io::{self, Write},
     thread,
@@ -34,9 +37,6 @@ struct Args {
 static DURATION_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*(\d+)?$|^\d+$").unwrap());
 
-use std::io::Cursor;
-use std::sync::atomic::AtomicBool;
-use std::sync::atomic::Ordering;
 // Embed your audio files as byte arrays:
 const AUDIO_1: &[u8] = include_bytes!("audio/1.ogg");
 const AUDIO_2: &[u8] = include_bytes!("audio/2.ogg");
