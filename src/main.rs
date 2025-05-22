@@ -1,7 +1,8 @@
 use clap::Parser;
 use ctrlc;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
-use rand::Rng;
+use rand::prelude::*;
+use rand::rng;
 use rodio::{Decoder, OutputStream, Sink};
 use std::sync::Arc;
 use std::{
@@ -9,10 +10,19 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
-/// Simple terminal timer
-#[derive(Parser)]
+/// terminal timer
+#[derive(Parser, Debug)]
+#[command(
+    name = "Terminal Timer",  
+    author,
+    version,
+    about = "A simple terminal timer with song notification",
+    long_about = None,
+    help_template = "{name} {version}\n{author}\n{about}\n{usage-heading} {usage}\n\n{all-args}"
+)]
 struct Args {
-    #[clap(value_parser)]
+    /// Timer duration (e.g. 1h 20m 30s)
+    #[arg(value_name = "TIME", required = false)]
     time: Vec<String>,
 }
 
@@ -29,9 +39,9 @@ const AUDIO_4: &[u8] = include_bytes!("audio/4.ogg");
 const AUDIO_LIST: [&[u8]; 4] = [AUDIO_1, AUDIO_2, AUDIO_3, AUDIO_4];
 
 fn random_choice<'a, T>(list: &'a [T]) -> &'a T {
-    let mut rng = rand::rng();
-    let idx = rng.random_range(0..list.len());
-    &list[idx]
+    let mut rng = rng();
+    list.choose(&mut rng)
+        .expect("Audio list should not be empty")
 }
 
 fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
@@ -52,24 +62,31 @@ fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
     };
 
     let audio_data = random_choice(&AUDIO_LIST);
-
     let cursor = Cursor::new(audio_data);
-    let source = Decoder::new(cursor).unwrap();
+    let source = match Decoder::new(cursor) {
+        Ok(src) => src,
+        Err(e) => {
+            eprintln!("Audio decode error: {e}. Skipping playback.");
+            return;
+        }
+    };
     sink.lock().unwrap().append(source);
 
     let is_done = Arc::new(AtomicBool::new(false));
     let is_done_clone = Arc::clone(&is_done);
     let sink_clone = Arc::clone(&sink);
 
+    // Thread to wait for audio to finish
     thread::spawn(move || {
         sink_clone.lock().unwrap().sleep_until_end();
         is_done_clone.store(true, Ordering::SeqCst);
     });
 
+    // Thread to wait for user input (Enter)
     let is_done_clone = Arc::clone(&is_done);
     thread::spawn(move || {
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        let _ = io::stdin().read_line(&mut input);
         is_done_clone.store(true, Ordering::SeqCst);
     });
 
@@ -106,12 +123,10 @@ fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
             pb.finish_with_message("Timer interrupted!");
             return;
         }
-
         let elapsed = start.elapsed().as_millis() as u64;
         pb.set_position(elapsed.min(total_ms));
         thread::sleep(Duration::from_millis(50));
     }
-
     pb.finish_with_message("Time's up!");
 }
 
@@ -120,11 +135,9 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
     let mut m;
     let mut s;
     let mut string_input = input.to_string();
-
     let re = Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*$").unwrap();
     loop {
         let mut valid = true;
-
         if !re.is_match(string_input.trim()) {
             valid = false;
         }
@@ -164,33 +177,28 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
             string_input = new_input.trim().to_string();
         }
     }
-
     (h, m, s)
 }
 
 fn main() {
     let args = Args::parse();
-
-    let global_abort = Arc::new(AtomicBool::new(false)); // <-- Track Ctrl+C
+    let global_abort = Arc::new(AtomicBool::new(false));
     {
         let global_abort = Arc::clone(&global_abort);
         ctrlc::set_handler(move || {
             println!("\nInterrupt received! Exiting...");
             global_abort.store(true, Ordering::SeqCst);
+            std::process::exit(0);
         })
         .expect("Error setting Ctrl+C handler");
     }
-
     let (hours, minutes, seconds) = get_duration(args);
-
     let duration = hours * 3600 + minutes * 60 + seconds;
     println!("Timer started for {}", format_duration(duration));
     show_progress_bar(duration, Arc::clone(&global_abort));
-
     if global_abort.load(Ordering::SeqCst) {
         return;
     }
-
     println!("Playing a random song... (press Enter to stop)");
     play_song_with_interrupt(global_abort);
 }
@@ -217,7 +225,6 @@ fn get_duration(args: Args) -> (u64, u64, u64) {
     } else {
         args.time.join(" ")
     };
-
     let (hours, minutes, seconds) = parse_duration(&input);
     (hours, minutes, seconds)
 }
