@@ -237,7 +237,7 @@ fn main() {
     if global_abort.load(Ordering::SeqCst) {
         return;
     }
-    if !message.trim().is_empty() {
+    if !message.trim().is_empty() && message.trim() != "''" {
         // Print colored heading and message using ANSI escape codes
         println!("\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m\n", message);
     }
