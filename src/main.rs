@@ -35,7 +35,7 @@ struct Args {
 }
 
 static DURATION_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?\s*(\d+)?$|^\d+$").unwrap());
+    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?$|^\d+$").unwrap());
 
 // Embed your audio files as byte arrays:
 const AUDIO_1: &[u8] = include_bytes!("audio/1.ogg");
