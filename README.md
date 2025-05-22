@@ -26,7 +26,7 @@ You can now install Terminal Timer easily on Windows using the MSI installer. If
 Once installed, open a new Command Prompt or PowerShell window and simply run:
 
 ```powershell
-terminal_time.exe 90s -m "Take a break!"
+terminal_timer.exe 90s -m "Take a break!"
 ```
 
 or just
