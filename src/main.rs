@@ -35,7 +35,7 @@ struct Args {
 }
 
 static DURATION_REGEX: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^(\d+h)?\s*(\d+m)?\s*(\d+s)?$|^\d+$").unwrap());
+    Lazy::new(|| Regex::new(r"^(?:\d+|(?:\d+h)?\s*(?:\d+m)?\s*(?:\d+s)?\s*)$").unwrap());
 
 // Embed your audio files as byte arrays:
 const AUDIO_1: &[u8] = include_bytes!("audio/1.ogg");
@@ -162,7 +162,7 @@ pub fn parse_duration(input: &str) -> (u64, u64, u64) {
         } else {
             duration_input = get_user_input(
                 "Invalid input or zero duration. Please provide a valid duration (e.g., 1h 20m 30s): ",
-            );
+            ).to_lowercase();
         }
     }
 
