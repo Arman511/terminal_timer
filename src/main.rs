@@ -197,7 +197,7 @@ fn get_duration_and_message(args: &Args) -> ((u64, u64, u64), String) {
     let input = if args.time.is_empty() {
         get_user_input("Enter duration (e.g. 1h 20m 30s): ")
     } else {
-        args.time.join(" ")
+        args.time.join(" ").to_lowercase()
     };
 
     let message = if args.message.is_empty() {
@@ -215,7 +215,7 @@ fn get_user_input(prompt: &str) -> String {
     io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
-    input.trim().to_string()
+    input.trim().to_string().to_lowercase()
 }
 
 fn main() {

@@ -202,7 +202,6 @@ The timer music used in this project is sourced from Pixabay.
 
     -   Handles valid inputs with hours, minutes, and seconds.
     -   Handles plain numeric inputs as seconds.
-    -   Rejects invalid formats and empty inputs.
     -   Handles large values for hours, minutes, and seconds.
 
 -   **`format_duration`**:

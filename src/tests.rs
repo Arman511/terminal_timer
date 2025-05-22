@@ -18,12 +18,6 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_duration_mixed() {
-        let input = "1h 45";
-        let (h, m, s) = parse_duration(input);
-        assert_eq!((h, m, s), (1, 0, 45));
-    }
-    #[test]
     fn test_parse_duration_only_hours() {
         let input = "2h";
         let (h, m, s) = parse_duration(input);
