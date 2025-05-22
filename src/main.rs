@@ -224,7 +224,7 @@ fn main() {
     }
     if !message.trim().is_empty() {
         // Print colored heading and message using ANSI escape codes
-        println!("\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m", message);
+        println!("\n\x1b[1;34mMessage:\x1b[0m \x1b[1;32m{}\x1b[0m\n", message);
     }
     println!("Playing a random song... (press Enter to stop)");
     play_song_with_interrupt(global_abort);
