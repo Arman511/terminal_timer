@@ -25,7 +25,7 @@ struct Args {
     #[arg(value_name = "TIME", required = false)]
     time: Vec<String>,
     /// Message to print after timer ends
-    #[arg(short, long, value_name = "MESSAGE", default_value = "")]
+    #[arg(short, long, value_name = "MESSAGE", default_value = "''")]
     message: String,
 }
 
@@ -102,7 +102,6 @@ fn play_song_with_interrupt(global_abort: Arc<AtomicBool>) {
 }
 
 fn show_progress_bar(seconds: u64, global_abort: Arc<AtomicBool>) {
-    println!("\n");
     let total_ms = seconds * 1000;
     let pb = ProgressBar::new(total_ms);
     pb.set_style(
@@ -150,59 +149,63 @@ fn parse_duration(input: &str) -> (u64, u64, u64) {
         m = 0;
         s = 0;
         for part in string_input.split_whitespace() {
-            if let Some(val) = part.strip_suffix('h') {
-                match val.parse() {
-                    Ok(val) => h = val,
-                    Err(_) => valid = false,
-                }
-            } else if let Some(val) = part.strip_suffix('m') {
-                match val.parse() {
-                    Ok(val) => m = val,
-                    Err(_) => valid = false,
-                }
-            } else if let Some(val) = part.strip_suffix('s') {
-                match val.parse() {
-                    Ok(val) => s = val,
-                    Err(_) => valid = false,
-                }
-            } else {
-                match part.parse() {
-                    Ok(val) => s = val,
-                    Err(_) => valid = false,
-                }
-            }
+            parse_time_part(part, &mut h, &mut m, &mut s, &mut valid);
         }
         if valid && (h > 0 || m > 0 || s > 0) {
             break;
         } else {
-            print!("Invalid format, timer cannot be 0. Please enter duration (e.g. 1h 20m 30s): ");
-            io::stdout().flush().unwrap();
-            let mut new_input = String::new();
-            io::stdin().read_line(&mut new_input).unwrap();
-            string_input = new_input.trim().to_string();
+            print!(
+                "Invalid input or zero duration. Please provide a valid duration (e.g., 1h 20m 30s): "
+            );
+            let new_input = get_user_input("");
+            string_input = new_input;
         }
     }
     (h, m, s)
 }
 
+fn parse_time_part(part: &str, h: &mut u64, m: &mut u64, s: &mut u64, valid: &mut bool) {
+    if let Some(val) = part.strip_suffix('h') {
+        match val.parse() {
+            Ok(val) => *h = val,
+            Err(_) => *valid = false,
+        }
+    } else if let Some(val) = part.strip_suffix('m') {
+        match val.parse() {
+            Ok(val) => *m = val,
+            Err(_) => *valid = false,
+        }
+    } else if let Some(val) = part.strip_suffix('s') {
+        match val.parse() {
+            Ok(val) => *s = val,
+            Err(_) => *valid = false,
+        }
+    } else {
+        match part.parse() {
+            Ok(val) => *s = val,
+            Err(_) => *valid = false,
+        }
+    }
+}
+
 fn get_duration_and_message(args: &Args) -> ((u64, u64, u64), String) {
     let (input, message) = if args.time.is_empty() {
-        print!("Enter duration (e.g. 1h 20m 30s): ");
-        io::stdout().flush().unwrap();
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
-        let input = input.trim().to_string();
-        print!("Enter message (optional, press Enter to skip): ");
-        io::stdout().flush().unwrap();
-        let mut message = String::new();
-        io::stdin().read_line(&mut message).unwrap();
-        let message = message.trim().to_string();
+        let input = get_user_input("\nEnter duration (e.g. 1h 20m 30s): ");
+        let message = get_user_input("Enter message (optional, press Enter to skip): ");
         (input, message)
     } else {
         (args.time.join(" "), args.message.clone())
     };
     let (hours, minutes, seconds) = parse_duration(&input);
     ((hours, minutes, seconds), message)
+}
+
+fn get_user_input(prompt: &str) -> String {
+    print!("{}", prompt);
+    io::stdout().flush().unwrap();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    input.trim().to_string()
 }
 
 fn main() {
@@ -219,7 +222,7 @@ fn main() {
     }
     let ((hours, minutes, seconds), message) = get_duration_and_message(&args);
     let duration = hours * 3600 + minutes * 60 + seconds;
-    println!("Timer started for {}", format_duration(duration));
+    println!("\nTimer started for {}", format_duration(duration));
     show_progress_bar(duration, Arc::clone(&global_abort));
     if global_abort.load(Ordering::SeqCst) {
         return;
