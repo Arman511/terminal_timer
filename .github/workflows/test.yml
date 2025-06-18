@@ -42,4 +42,4 @@ jobs:
           cargo install cargo-wix
 
       - name: Build Windows installer with cargo wix
-        run: cargo wix --log-level debug
+        run: cargo wix
