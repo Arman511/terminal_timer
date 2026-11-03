@@ -25,6 +25,7 @@
 -   Custom duration input (e.g. `1h 30m 45s`)
 -   Optional message/reminder after timer ends (e.g. `--message "Wash car"`)
 -   Skip the end-of-timer song with `--no-audio` (`-n`)
+-   Custom songs: put `.ogg`, `.mp3`, `.wav` or `.flac` files in a `tt_audio` folder next to the executable and one is picked at random instead of the built-in songs
 -   Embedded audio files for portability
 -   Randomized music playback after the timer ends
 -   Graceful `Ctrl+C` handling

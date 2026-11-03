@@ -3,11 +3,12 @@ use console::style;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use crossterm::terminal;
 use indicatif::{ProgressBar, ProgressState, ProgressStyle};
-use rand::seq::IndexedRandom;
+use rand::seq::{IndexedRandom, SliceRandom};
 use rodio::{Decoder, DeviceSinkBuilder, Player};
 use std::error::Error;
 use std::fmt;
 use std::io::{self, Cursor, Write};
+use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -76,6 +77,50 @@ const AUDIO_LIST: [&[u8]; 4] = [AUDIO_1, AUDIO_2, AUDIO_3, AUDIO_4];
 
 const POLL_INTERVAL: Duration = Duration::from_millis(100);
 
+/// Folder next to the executable that may hold custom songs.
+const CUSTOM_AUDIO_DIR: &str = "tt_audio";
+const CUSTOM_AUDIO_EXTENSIONS: [&str; 4] = ["ogg", "mp3", "wav", "flac"];
+
+fn custom_audio_files() -> Vec<PathBuf> {
+    let Some(dir) = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(|p| p.join(CUSTOM_AUDIO_DIR)))
+    else {
+        return Vec::new();
+    };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    entries
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter(|p| {
+            p.is_file()
+                && p.extension()
+                    .and_then(|e| e.to_str())
+                    .is_some_and(|e| CUSTOM_AUDIO_EXTENSIONS.contains(&e.to_lowercase().as_str()))
+        })
+        .collect()
+}
+
+/// Picks a random decodable song from `tt_audio`, falling back to the embedded songs.
+fn pick_audio() -> Option<Decoder<Cursor<Vec<u8>>>> {
+    let mut rng = rand::rng();
+    let mut custom = custom_audio_files();
+    custom.shuffle(&mut rng);
+    for path in custom {
+        let decoded = std::fs::read(&path)
+            .map_err(|e| e.to_string())
+            .and_then(|bytes| Decoder::new(Cursor::new(bytes)).map_err(|e| e.to_string()));
+        match decoded {
+            Ok(src) => return Some(src),
+            Err(e) => eprintln!("Skipping {}: {e}", path.display()),
+        }
+    }
+    let data = AUDIO_LIST.choose(&mut rng)?;
+    Decoder::new(Cursor::new(data.to_vec())).ok()
+}
+
 /// While a prompt is blocking on stdin the main thread cannot observe the abort flag,
 /// so the Ctrl+C handler exits directly in that case.
 static PROMPTING: AtomicBool = AtomicBool::new(false);
@@ -125,13 +170,10 @@ fn play_song_with_interrupt(global_abort: &AtomicBool) {
     device_sink.log_on_drop(false);
     let sink = Player::connect_new(device_sink.mixer());
 
-    let audio_data = AUDIO_LIST
-        .choose(&mut rand::rng())
-        .expect("Audio list should not be empty");
-    let source = match Decoder::new(Cursor::new(*audio_data)) {
-        Ok(src) => src,
-        Err(e) => {
-            eprintln!("Audio decode error: {e}. Skipping playback.");
+    let source = match pick_audio() {
+        Some(src) => src,
+        None => {
+            eprintln!("Audio decode error. Skipping playback.");
             return;
         }
     };
