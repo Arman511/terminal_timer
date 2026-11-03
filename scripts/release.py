@@ -21,10 +21,16 @@ if not tag:
     for existing_tag in tags[-5:]:
         print(f"  {existing_tag}")
 
-    tag = input("New tag (e.g. v1.0): ").strip()
+    tag = input("New tag (e.g. v1.0.0): ").strip()
 
 if not tag:
     sys.exit("No tag given")
+if (
+    not tag.startswith("v")
+    or tag.count(".") != 2
+    or not all(part.isdigit() for part in tag[1:].split("."))
+):
+    sys.exit("Tag must match vMAJOR.MINOR.PATCH")
 
 run("git", "tag", "-a", tag, "-m", tag)
 run("git", "push", "origin", tag)
