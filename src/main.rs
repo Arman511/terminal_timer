@@ -407,6 +407,10 @@ fn main() -> ExitCode {
         println!("Playing a random song... (press Enter to stop)");
         play_song_with_interrupt(&global_abort);
     }
+    if global_abort.load(Ordering::Relaxed) {
+        println!("\nInterrupt received! Exiting...");
+        return ExitCode::from(130);
+    }
     ExitCode::SUCCESS
 }
 
