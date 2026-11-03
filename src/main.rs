@@ -31,6 +31,9 @@ struct Args {
     /// Message to print after timer ends
     #[arg(short, long, value_name = "MESSAGE", default_value = "")]
     message: String,
+    /// Don't play a song when the timer ends
+    #[arg(short, long)]
+    no_audio: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -358,8 +361,10 @@ fn main() -> ExitCode {
             style(&message).green().bold()
         );
     }
-    println!("Playing a random song... (press Enter to stop)");
-    play_song_with_interrupt(&global_abort);
+    if !args.no_audio {
+        println!("Playing a random song... (press Enter to stop)");
+        play_song_with_interrupt(&global_abort);
+    }
     ExitCode::SUCCESS
 }
 

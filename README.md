@@ -24,6 +24,7 @@
 
 -   Custom duration input (e.g. `1h 30m 45s`)
 -   Optional message/reminder after timer ends (e.g. `--message "Wash car"`)
+-   Skip the end-of-timer song with `--no-audio` (`-n`)
 -   Embedded audio files for portability
 -   Randomized music playback after the timer ends
 -   Graceful `Ctrl+C` handling
