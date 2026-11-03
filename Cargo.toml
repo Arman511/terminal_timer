@@ -1,18 +1,17 @@
 [package]
-name = "terminal_timer"
 authors = ["Arman511"]
-version = "1.1.0"
-edition = "2024"
-license-file = "LICENSE.rtf"
 description = "A terminal-based timer tool with song notifications"
+edition = "2024"
 homepage = "https://github.com/Arman511/terminal_timer"
-
+license-file = "LICENSE.rtf"
+name = "terminal_timer"
+version = "1.5.0"
 
 [dependencies]
-clap = { version = "4.5.38", features = ["derive"] }
+clap = {version = "4.5.38", features = ["derive"]}
+console = "0.16"
+crossterm = "0.29.0"
 ctrlc = "3.4.7"
-indicatif = "0.17.11"
-once_cell = "1.21.3"
-rand = "0.9.3"
-regex = "1.11.1"
-rodio = "0.20.1"
+indicatif = "0.18.6"
+rand = "0.10.3"
+rodio = "0.23.0"

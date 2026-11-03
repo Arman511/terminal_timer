@@ -23,6 +23,12 @@ jobs:
           override: true
           components: rustfmt
 
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test
+
       - name: Build
         run: cargo build --release
 
