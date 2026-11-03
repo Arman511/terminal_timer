@@ -163,7 +163,7 @@ or
 terminal_timer.exe 45s --message "Do pushups"
 ```
 
-## 📂 Audio Files
+## 📂 Embedded Audio Files
 
 Audio files must be stored in the `audio/` directory and will be embedded at compile-time using `include_bytes!`.
 
@@ -185,6 +185,8 @@ You can replace these with any audio files you like or add more—just make sure
 -   **rand** – Random number generation
 -   **rodio** – Audio playback
 -   **regex** – Input parsing
+-   **console** - For colour in the terminal
+-   **crossterm** For terminal manipulation
 
 Install them automatically with `cargo build`.
 
